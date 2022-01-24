@@ -20,13 +20,17 @@ def train_function(config, checkpoint_dir=None):
         tune.report(loss=loss)
 
 
-def tune_function():
+def tune_function(api_key):
     """Example for using a WandbLoggerCallback with the function API"""
     analysis = tune.run(
         train_function,
         metric="loss",
         mode="min",
         config={
+            "wandb": {
+                "api_key": api_key,
+                "project": "Wandb_example"
+            },
             "mean": tune.grid_search([1, 2, 3, 4, 5]),
             "sd": tune.uniform(0.2, 0.8)
         },
@@ -44,7 +48,7 @@ def decorated_train_function(config, checkpoint_dir=None):
         wandb.log(dict(loss=loss))
 
 
-def tune_decorated():
+def tune_decorated(api_key):
     """Example for using the @wandb_mixin decorator with the function API"""
     analysis = tune.run(
         decorated_train_function,
@@ -54,6 +58,7 @@ def tune_decorated():
             "mean": tune.grid_search([1, 2, 3, 4, 5]),
             "sd": tune.uniform(0.2, 0.8),
             "wandb": {
+                "api_key": api_key,
                 "project": "Wandb_example"
             }
         })
@@ -68,7 +73,7 @@ class WandbTrainable(WandbTrainableMixin, Trainable):
         return {"loss": loss, "done": True}
 
 
-def tune_trainable():
+def tune_trainable(api_key):
     """Example for using a WandTrainableMixin with the class API"""
     analysis = tune.run(
         WandbTrainable,
@@ -78,6 +83,7 @@ def tune_trainable():
             "mean": tune.grid_search([1, 2, 3, 4, 5]),
             "sd": tune.uniform(0.2, 0.8),
             "wandb": {
+                "api_key": api_key,
                 "project": "Wandb_example"
             }
         })
@@ -91,6 +97,7 @@ if __name__ == "__main__":
     args, _ = parser.parse_known_args()
 
     api_key_file = "~/.wandb_api_key"
+    api_key = os.environ['WANDB_API_KEY']
 
     ray.init(runtime_env={"env_vars":{"WANDB_API_KEY":f"{os.environ['WANDB_API_KEY']}"}})
 
@@ -104,9 +111,9 @@ if __name__ == "__main__":
         temp_file.flush()
         api_key_file = temp_file.name
 
-    tune_function()
-    tune_decorated()
-    tune_trainable()
+    tune_function(api_key)
+    tune_decorated(api_key)
+    tune_trainable(api_key)
 
     if args.mock_api:
         temp_file.close()
