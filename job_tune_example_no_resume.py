@@ -29,14 +29,13 @@ def tune_function(api_key):
         config={
             "wandb": {
                 "api_key": api_key,
-                "project": "Wandb_example",
-                "resume": False
+                "project": "Wandb_example"
             },
             "mean": tune.grid_search([1, 2, 3, 4, 5]),
             "sd": tune.uniform(0.2, 0.8)
         },
         callbacks=[
-            WandbLoggerCallback(project="Wandb_example")
+            WandbLoggerCallback(project="Wandb_example", resume=False)
         ])
     return analysis.best_config
 
